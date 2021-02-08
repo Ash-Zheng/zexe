@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::time::Instant;
 
 use algebra_core::{
     msm::VariableBaseMSM, AffineCurve, PairingEngine, PrimeField, ProjectiveCurve, UniformRand,
@@ -57,22 +58,30 @@ where
     let prover_time = start_timer!(|| "Groth16::Prover");
     let cs = ConstraintSystem::new_ref();
 
-    println!("AshzWang!!!")
     // Synthesize the circuit.
+    let begin = Instant::now();
     let synthesis_time = start_timer!(|| "Constraint synthesis");
     circuit.generate_constraints(cs.clone())?;
     debug_assert!(cs.is_satisfied().unwrap());
     end_timer!(synthesis_time);
+    let end = Instant::now();
+    println!("Zheng Constraint synthesis time {:?}", end.duration_since(begin));
 
+    let begin = Instant::now();
     let lc_time = start_timer!(|| "Inlining LCs");
     cs.inline_all_lcs();
     end_timer!(lc_time);
+    let end = Instant::now();
+    println!("Zheng Inlining LCs time {:?}", end.duration_since(begin));
 
+    let begin = Instant::now();
     let witness_map_time = start_timer!(|| "R1CS to QAP witness map");
     let h = R1CStoQAP::witness_map::<E, D>(cs.clone())?;
     end_timer!(witness_map_time);
-    let prover = cs.borrow().unwrap();
+    let end = Instant::now();
+    println!("Zheng R1CS to QAP witness map time {:?}", end.duration_since(begin));
 
+    let prover = cs.borrow().unwrap();
     let input_assignment = prover.instance_assignment[1..]
         .into_iter()
         .map(|s| s.into_repr())
@@ -88,16 +97,18 @@ where
     let h_assignment = cfg_into_iter!(h).map(|s| s.into_repr()).collect::<Vec<_>>();
 
     // Compute A
+    let begin = Instant::now();
     let a_acc_time = start_timer!(|| "Compute A");
     let a_query = params.get_a_query_full()?;
     let r_g1 = params.delta_g1.mul(r);
-
     let g_a = calculate_coeff(r_g1, a_query, params.vk.alpha_g1, &assignment);
-
     end_timer!(a_acc_time);
+    let end = Instant::now();
+    println!("Zheng Compute A time {:?}", end.duration_since(begin));
 
     // Compute B in G1 if needed
     let g1_b = if r != E::Fr::zero() {
+        let begin = Instant::now();
         let b_g1_acc_time = start_timer!(|| "Compute B in G1");
         let s_g1 = params.delta_g1.mul(s);
         let b_query = params.get_b_g1_query_full()?;
@@ -105,6 +116,8 @@ where
         let g1_b = calculate_coeff(s_g1, b_query, params.beta_g1, &assignment);
 
         end_timer!(b_g1_acc_time);
+        let end = Instant::now();
+        println!("Zheng Compute B in G1 time {:?}", end.duration_since(begin));
 
         g1_b
     } else {
@@ -112,14 +125,18 @@ where
     };
 
     // Compute B in G2
+    let begin = Instant::now();
     let b_g2_acc_time = start_timer!(|| "Compute B in G2");
     let b_query = params.get_b_g2_query_full()?;
     let s_g2 = params.vk.delta_g2.mul(s);
     let g2_b = calculate_coeff(s_g2, b_query, params.vk.beta_g2, &assignment);
     drop(assignment);
     end_timer!(b_g2_acc_time);
+    let end = Instant::now();
+    println!("Zheng Compute B in G2 time {:?}", end.duration_since(begin));
 
     // Compute C
+    let begin = Instant::now();
     let c_acc_time = start_timer!(|| "Compute C");
 
     let h_query = params.get_h_query_full()?;
@@ -139,6 +156,8 @@ where
     g_c += &l_aux_acc;
     g_c += &h_acc;
     end_timer!(c_acc_time);
+    let end = Instant::now();
+    println!("Zheng Compute C time {:?}", end.duration_since(begin));
 
     end_timer!(prover_time);
 
