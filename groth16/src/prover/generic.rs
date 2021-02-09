@@ -55,6 +55,10 @@ where
     C: ConstraintSynthesizer<E::Fr>,
     D: EvaluationDomain<E::Fr>,
 {
+    let mut file = OpenOptions::new().append(true).open("result.txt").expect(
+        "cannot open file");
+    file.write_all("shallownet_optimized_pedersen_mnist:".as_bytes()).expect("write failed");
+
     let prover_time = start_timer!(|| "Groth16::Prover");
     let cs = ConstraintSystem::new_ref();
 
@@ -66,6 +70,10 @@ where
     end_timer!(synthesis_time);
     let end = Instant::now();
     println!("Zheng Constraint synthesis time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n Constraint synthesis time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     let begin = Instant::now();
     let lc_time = start_timer!(|| "Inlining LCs");
@@ -73,6 +81,10 @@ where
     end_timer!(lc_time);
     let end = Instant::now();
     println!("Zheng Inlining LCs time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n Inlining LCs time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     let begin = Instant::now();
     let witness_map_time = start_timer!(|| "R1CS to QAP witness map");
@@ -80,6 +92,10 @@ where
     end_timer!(witness_map_time);
     let end = Instant::now();
     println!("Zheng R1CS to QAP witness map time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n R1CS to QAP witness map time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     let prover = cs.borrow().unwrap();
     let input_assignment = prover.instance_assignment[1..]
@@ -105,6 +121,10 @@ where
     end_timer!(a_acc_time);
     let end = Instant::now();
     println!("Zheng Compute A time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n Compute A time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     // Compute B in G1 if needed
     let g1_b = if r != E::Fr::zero() {
@@ -118,6 +138,10 @@ where
         end_timer!(b_g1_acc_time);
         let end = Instant::now();
         println!("Zheng Compute B in G1 time {:?}", end.duration_since(begin));
+        let time = end.duration_since(begin);
+        let s_time = time.as_secs_f32().to_string();
+        file.write_all("\n Compute B in G1 time:".as_bytes()).expect("write failed");
+        file.write_all(s_time.as_bytes()).expect("write failed");
 
         g1_b
     } else {
@@ -134,6 +158,10 @@ where
     end_timer!(b_g2_acc_time);
     let end = Instant::now();
     println!("Zheng Compute B in G2 time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n Compute B in G2 time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     // Compute C
     let begin = Instant::now();
@@ -158,6 +186,10 @@ where
     end_timer!(c_acc_time);
     let end = Instant::now();
     println!("Zheng Compute C time {:?}", end.duration_since(begin));
+    let time = end.duration_since(begin);
+    let s_time = time.as_secs_f32().to_string();
+    file.write_all("\n Compute C time:".as_bytes()).expect("write failed");
+    file.write_all(s_time.as_bytes()).expect("write failed");
 
     end_timer!(prover_time);
 
