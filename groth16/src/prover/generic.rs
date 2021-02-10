@@ -77,7 +77,7 @@ where
     // file.write_all("\n Constraint synthesis time:".as_bytes()).expect("write failed");
     // file.write_all(s_time.as_bytes()).expect("write failed");
 
-    println!("Zheng CS befor inline{:?}", cs);
+    // println!("Zheng CS befor inline{:?}", cs);
 
     let begin = Instant::now();
     let lc_time = start_timer!(|| "Inlining LCs");
@@ -90,7 +90,7 @@ where
     // file.write_all("\n Inlining LCs time:".as_bytes()).expect("write failed");
     // file.write_all(s_time.as_bytes()).expect("write failed");
 
-    println!("Zheng CS after inline{:?}", cs);
+    // println!("Zheng CS after inline{:?}", cs);
 
     let begin = Instant::now();
     let witness_map_time = start_timer!(|| "R1CS to QAP witness map");
