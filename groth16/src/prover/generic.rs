@@ -1,5 +1,3 @@
-use std::fs::OpenOptions;
-use std::io::Write;
 use rand::Rng;
 use std::time::Instant;
 
@@ -112,10 +110,11 @@ where
     let aux_assignment = cfg_iter!(prover.witness_assignment)
         .map(|s| s.into_repr())
         .collect::<Vec<_>>();
-    drop(prover);
 
-    println!("\nzheng input_assignment.len():{:?}", input_assignment.len());
-    println!("\nzheng aux_assignment.len():{:?}", aux_assignment.len());
+    println!("\nzheng input_assignment.len():{:?}", prover.instance_assignment.len());
+    println!("\nzheng aux_assignment.len():{:?}", prover.witness_assignment.len());
+
+    drop(prover);
 
     let assignment = [&input_assignment[..], &aux_assignment[..]].concat();
 
