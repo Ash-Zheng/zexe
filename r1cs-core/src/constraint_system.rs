@@ -256,10 +256,18 @@ impl<F: Field> ConstraintSystem<F> {
         let mut num_coeff = 0;
         let mut num_lcs = 0;
         let mut num_concrete_variable = 0;
+
+        let mut tag = 0;
         println!("lc_map len {}", self.lc_map.len());
         for (&index, lc) in &self.lc_map {
             let mut inlined_lc = LinearCombination::new();
             num_coeff += lc.clone().len();
+
+            if tag == 0{
+                println!("\n\na lc example: {:?}\n\n", lc);
+                tag += 1;
+            }
+            
             //println!("lc len {}", lc.clone().len());
             for &(coeff, var) in lc.iter() {
                 if var.is_lc() {
