@@ -5,6 +5,7 @@ use ff_fft::{cfg_into_iter, cfg_iter, EvaluationDomain};
 
 use r1cs_core::{ConstraintSynthesizer, ConstraintSystem, SynthesisError};
 use rand::Rng;
+use std::time::Instant;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -53,6 +54,7 @@ where
     // Synthesize the circuit.
     //println!("start synthesize circuit");
     let synthesis_time = start_timer!(|| "Constraint synthesis");
+    let begin = Instant::now();
     circuit.generate_constraints(cs.clone())?;
     //30GB
     end_timer!(synthesis_time);
@@ -62,16 +64,23 @@ where
     cs.inline_all_lcs();
     //
     end_timer!(lc_time);
+    
+    let end = Instant::now();
     println!("finish inline lcs");
+    println!("Zheng Setup Inlining LCs time {:?}", end.duration_since(begin));
 
     //println!("start Constructing evaluation domain");
 
     ///////////////////////////////////////////////////////////////////////////
     let domain_time = start_timer!(|| "Constructing evaluation domain");
 
+    let begin = Instant::now();
     let domain_size = cs.num_constraints() + cs.num_instance_variables();
     let domain = D::new(domain_size).ok_or(SynthesisError::PolynomialDegreeTooLarge)?;
     let t = domain.sample_element_outside_domain(rng);
+    
+    let end = Instant::now();
+    println!("Zheng Setup Domain time {:?}", end.duration_since(begin));
 
     println!("\nzheng cs.num_constraints():{:?}", cs.num_constraints());
     println!("\nzheng cs.num_instance_variables():{:?}", cs.num_instance_variables());
@@ -81,11 +90,15 @@ where
     //println!("start R1CS to QAP");
 
     let reduction_time = start_timer!(|| "R1CS to QAP Instance Map with Evaluation");
+    let begin = Instant::now();
     let num_instance_variables = cs.num_instance_variables();
 
     let (a, b, c, zt, qap_num_variables, m_raw) =
         R1CStoQAP::instance_map_with_evaluation::<E, D>(cs.clone(), &t)?;
     end_timer!(reduction_time);
+    let end = Instant::now();
+    println!("Zheng Setup R1CStoQAP time {:?}", end.duration_since(begin));
+
     //println!("start Compute query densities");
 
     // Compute query densities
