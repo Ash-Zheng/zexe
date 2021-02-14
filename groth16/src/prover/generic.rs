@@ -114,6 +114,9 @@ where
         .collect::<Vec<_>>();
     drop(prover);
 
+    println!("\nzheng input_assignment.len():{:?}", input_assignment.len());
+    println!("\nzheng aux_assignment.len():{:?}", aux_assignment.len());
+
     let assignment = [&input_assignment[..], &aux_assignment[..]].concat();
 
     let h_assignment = cfg_into_iter!(h).map(|s| s.into_repr()).collect::<Vec<_>>();

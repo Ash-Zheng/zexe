@@ -73,6 +73,9 @@ where
     let domain = D::new(domain_size).ok_or(SynthesisError::PolynomialDegreeTooLarge)?;
     let t = domain.sample_element_outside_domain(rng);
 
+    println!("\nzheng cs.num_constraints():{:?}", cs.num_constraints());
+    println!("\nzheng cs.num_instance_variables():{:?}", cs.num_instance_variables());
+
     end_timer!(domain_time);
     ///////////////////////////////////////////////////////////////////////////
     //println!("start R1CS to QAP");
