@@ -295,6 +295,8 @@ impl<F: Field> ConstraintSystem<F> {
                     // Otherwise, it's a concrete variable and so we
                     // substitute it in directly.
                     inlined_lc.push((coeff, var));
+                    println!("coeff:{:?}",coeff);
+                    println!("var:{:?}",var);
                     num_concrete_variable +=1;
                 }
             }
