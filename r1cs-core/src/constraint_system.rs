@@ -274,6 +274,7 @@ impl<F: Field> ConstraintSystem<F> {
 
                     let begin = Instant::now();
                     let tmp = (lc * coeff).0.into_iter();
+                    println!("lc * coeff:{:?}",tmp);
                     let end = Instant::now();
                     lc_mul_coeff_time += end.duration_since(begin);
 
