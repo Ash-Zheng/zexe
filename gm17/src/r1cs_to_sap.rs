@@ -18,6 +18,7 @@ impl R1CStoSAP {
         t: &E::Fr,
     ) -> Result<(Vec<E::Fr>, Vec<E::Fr>, E::Fr, usize, usize), SynthesisError> {
         let matrices = cs.to_matrices().unwrap();
+        println!("Zheng Matrices:{:?}",matrices);
         let num_inputs = cs.num_instance_variables();
         let num_aux = cs.num_witness_variables();
         let num_constraints = cs.num_constraints();
