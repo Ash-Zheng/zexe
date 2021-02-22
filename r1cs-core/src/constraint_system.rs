@@ -284,6 +284,7 @@ impl<F: Field> ConstraintSystem<F> {
                     let end = Instant::now();
                     extend_time += end.duration_since(begin);
 
+                    println!("index:{:?}, num_times_used{:?}",lc_index.0, num_times_used[lc_index.0]);
                     num_times_used[lc_index.0] -= 1;
                     if num_times_used[lc_index.0] == 0 {
                         // This lc is not used any more, so remove it.
