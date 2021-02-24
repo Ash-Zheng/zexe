@@ -130,6 +130,7 @@ impl<F: Field> Neg for LinearCombination<F> {
 
 impl<F: Field> Mul<F> for LinearCombination<F> {
     type Output = Self;
+    println!("zheng 3");
 
     #[inline]
     fn mul(mut self, scalar: F) -> Self {
@@ -140,7 +141,7 @@ impl<F: Field> Mul<F> for LinearCombination<F> {
 
 impl<'a, F: Field> Mul<F> for &'a LinearCombination<F> {
     type Output = LinearCombination<F>;
-
+    println!("zheng 1");
     #[inline]
     fn mul(self, scalar: F) -> LinearCombination<F> {
         let mut cur = self.clone();
@@ -150,6 +151,8 @@ impl<'a, F: Field> Mul<F> for &'a LinearCombination<F> {
 }
 
 impl<F: Field> MulAssign<F> for LinearCombination<F> {
+    println!("zheng 2");
+
     #[inline]
     fn mul_assign(&mut self, scalar: F) {
         self.0.iter_mut().for_each(|(coeff, _)| *coeff *= &scalar);
@@ -469,7 +472,7 @@ impl<F: Field> Sub<(F, &LinearCombination<F>)> for &LinearCombination<F> {
 }
 
 impl<'a, F: Field> Sub<(F, &'a LinearCombination<F>)> for LinearCombination<F> {
-    type Output = LinearCombination<F>;
+    type Output = <F>;
 
     fn sub(self, (coeff, other): (F, &'a LinearCombination<F>)) -> LinearCombination<F> {
         self + (-coeff, other)
