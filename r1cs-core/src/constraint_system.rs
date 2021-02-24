@@ -276,8 +276,8 @@ impl<F: Field> ConstraintSystem<F> {
                     let begin = Instant::now();
                     println!("\n coeff:{:?}",coeff);
                     println!("\n lc:{:?}",lc);
-                    let ttmp = lc * coeff;
-                    println!("\n before iter:{:?}",ttmp);
+                    // let ttmp = lc * coeff;
+                    // println!("\n before iter:{:?}",ttmp);
                     let tmp = (lc * coeff).0.into_iter();
                     println!("\n lc * coeff:{:?}",tmp);
                     let end = Instant::now();
