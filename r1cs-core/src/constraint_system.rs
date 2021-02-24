@@ -274,6 +274,9 @@ impl<F: Field> ConstraintSystem<F> {
                     let lc = inlined_lcs.get(&lc_index).expect("should be inlined");
 
                     let begin = Instant::now();
+                    println!("\n coeff:{:?}",coeff);
+                    println!("\n lc:{:?}",lc);
+                    
                     let tmp = (lc * coeff).0.into_iter();
                     println!("lc * coeff:{:?}",tmp);
                     let end = Instant::now();
