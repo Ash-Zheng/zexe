@@ -85,9 +85,9 @@ where
     let end_check = Instant::now();
     println!("Zheng parallel check time {:?}", end_check.duration_since(begin_check));
 
-    println!("Zheng cs before inline {:?}", cs);
+    // println!("Zheng cs before inline {:?}", cs);
     cs.inline_all_lcs();
-    println!("Zheng cs after inline {:?}", cs);
+    // println!("Zheng cs after inline {:?}", cs);
     end_timer!(lc_time);
     let end = Instant::now();
     println!("Zheng Inlining LCs time {:?}", end.duration_since(begin));

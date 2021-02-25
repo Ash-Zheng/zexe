@@ -133,7 +133,6 @@ impl<F: Field> Mul<F> for LinearCombination<F> {
 
     #[inline]
     fn mul(mut self, scalar: F) -> Self {
-        println!("Zheng 1");
         self *= scalar;
         self
     }
@@ -144,7 +143,6 @@ impl<'a, F: Field> Mul<F> for &'a LinearCombination<F> {
 
     #[inline]
     fn mul(self, scalar: F) -> LinearCombination<F> {
-        println!("Zheng 2");
         let mut cur = self.clone();
         cur *= scalar;
         cur
@@ -154,7 +152,6 @@ impl<'a, F: Field> Mul<F> for &'a LinearCombination<F> {
 impl<F: Field> MulAssign<F> for LinearCombination<F> {
     #[inline]
     fn mul_assign(&mut self, scalar: F) {
-        println!("Zheng 3");
         self.0.iter_mut().for_each(|(coeff, _)| *coeff *= &scalar);
     }
 }
