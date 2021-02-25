@@ -268,9 +268,9 @@ impl<F: Field> ConstraintSystem<F> {
                             raw_idx += 1;
                         } 
                     }
+                    println!("map length:{}",link_map.len());
                 }
             }
-            println!("map length:{}",link_map.len());
         }
         let final_map_len = link_map.len();
         println!("final length:{}",final_map_len);
