@@ -273,6 +273,7 @@ impl<F: Field> ConstraintSystem<F> {
                         } 
                     }
                     println!("map length:{}",link_map.len());
+                    println!("final map:{:?}", link_map);
                 }
             }
         }
