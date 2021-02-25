@@ -236,6 +236,46 @@ impl<F: Field> ConstraintSystem<F> {
         num_times_used
     }
 
+    /// Get `SymbolicLc`s dependents with each other.
+    pub fn parallel_inline_check(&mut self){
+        let map_len = self.lc_map.len();
+        println!("lc_map len:{}", self.lc_map.len());
+        let mut link_map = Vec::new();
+        for (&index, lc) in &self.lc_map {
+            for &(coeff, var) in lc.iter() {
+                if var.is_lc() {
+                    // println!("var:{:?}",var.get_lc_index_num());
+                    // let idx = var.get_lc_index_num();
+                    let idx = index.get_num();
+                    if link_map.len() == 0{
+                        let mut v = Vec::new();
+                        v.push(idx);
+                        link_map.push(v);
+                    }
+                    else{
+                        let mut raw_idx = 0;
+                        for list in link_map.clone().iter(){
+                            for n in list.iter(){
+                                if *n == idx{
+                                    link_map[raw_idx].push(idx);
+                                }
+                                else{
+                                    let mut v = Vec::new();
+                                    v.push(idx);
+                                    link_map.push(v);
+                                }
+                            }
+                            raw_idx += 1;
+                        } 
+                    }
+                }
+            }
+        }
+        let final_map_len = link_map.len();
+        println!("final length:{}",final_map_len);
+        println!("final map:{:?}", link_map);
+    }
+    
     /// Naively inlines symbolic linear combinations into the linear combinations
     /// that use them.
     ///
@@ -716,6 +756,12 @@ impl<F: Field> ConstraintSystemRef<F> {
     pub fn inline_all_lcs(&self) {
         if let Some(cs) = self.inner() {
             cs.borrow_mut().inline_all_lcs()
+        }
+    }
+
+    pub fn parallel_inline_check(&self) {
+        if let Some(cs) = self.inner() {
+            cs.borrow_mut().parallel_inline_check()
         }
     }
 

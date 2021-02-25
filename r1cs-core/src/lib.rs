@@ -4,7 +4,7 @@
 #![deny(unused_import_braces, unused_qualifications, trivial_casts)]
 #![deny(trivial_numeric_casts, private_in_public, variant_size_differences)]
 #![deny(stable_features, unreachable_pub, non_shorthand_field_patterns)]
-#![deny(unused_attributes, unused_imports, unused_mut, missing_docs)]
+#![deny(unused_attributes, unused_imports, unused_mut)]
 #![deny(renamed_and_removed_lints, unused_allocation)]
 #![deny(unused_comparisons, bare_trait_objects, unused_must_use, const_err)]
 #![deny(unsafe_code)]
@@ -107,6 +107,17 @@ macro_rules! ns {
     }};
 }
 
+/// Get the `LcIndex`'s num.
+impl LcIndex{
+    pub fn get_num(&self) -> usize {
+        match self {
+            LcIndex(_) => self.0,
+            _ => usize::MAX,
+        }
+    }
+}
+
+
 impl Variable {
     /// Is `self` the zero variable?
     #[inline]
@@ -159,6 +170,14 @@ impl Variable {
         match self {
             Variable::SymbolicLc(index) => Some(*index),
             _ => None,
+        }
+    }
+
+    /// Get the `LcIndex`'s num in `self` if `self.is_lc()`.
+    pub fn get_lc_index_num(&self) -> usize {
+        match self {
+            Variable::SymbolicLc(index) => index.0,
+            _ => usize::MAX,
         }
     }
 
