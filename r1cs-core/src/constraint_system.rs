@@ -273,7 +273,7 @@ impl<F: Field> ConstraintSystem<F> {
         }
         let final_map_len = link_map.len();
         println!("final length:{}",final_map_len);
-        println!("final map:{:?}", link_map);
+        // println!("final map:{:?}", link_map);
     }
     
     /// Naively inlines symbolic linear combinations into the linear combinations
@@ -314,12 +314,12 @@ impl<F: Field> ConstraintSystem<F> {
                     let lc = inlined_lcs.get(&lc_index).expect("should be inlined");
 
                     let begin = Instant::now();
-                    println!("\n coeff:{:?}",coeff);
-                    println!("\n lc:{:?}",lc);
+                    // println!("\n coeff:{:?}",coeff);
+                    // println!("\n lc:{:?}",lc);
                     // lc * coeff;
                     // println!("\n before iter:{:?}",ttmp);
                     let tmp = (lc * coeff).0.into_iter();
-                    println!("\n lc * coeff:{:?}",tmp);
+                    // println!("\n lc * coeff:{:?}",tmp);
                     let end = Instant::now();
                     lc_mul_coeff_time += end.duration_since(begin);
 
@@ -328,7 +328,7 @@ impl<F: Field> ConstraintSystem<F> {
                     let end = Instant::now();
                     extend_time += end.duration_since(begin);
 
-                    println!("index:{:?}, num_times_used{:?}",lc_index.0, num_times_used[lc_index.0]);
+                    // println!("index:{:?}, num_times_used{:?}",lc_index.0, num_times_used[lc_index.0]);
                     num_times_used[lc_index.0] -= 1;
                     if num_times_used[lc_index.0] == 0 {
                         // This lc is not used any more, so remove it.
@@ -345,8 +345,8 @@ impl<F: Field> ConstraintSystem<F> {
                     // println!("index:{:?}, num_times_used{:?}",lc_index.0, num_times_used[lc_index.0]);
 
                     inlined_lc.push((coeff, var));
-                    println!("coeff:{:?}",coeff);
-                    println!("var:{:?}",var);
+                    // println!("coeff:{:?}",coeff);
+                    // println!("var:{:?}",var);
                     num_concrete_variable +=1;
                 }
             }
