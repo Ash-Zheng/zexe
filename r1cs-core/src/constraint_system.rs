@@ -245,23 +245,23 @@ impl<F: Field> ConstraintSystem<F> {
             for &(coeff, var) in lc.iter() {
                 if var.is_lc() {
                     // println!("var:{:?}",var.get_lc_index_num());
-                    // let idx = var.get_lc_index_num();
-                    let idx = index.get_num();
+                    let idx1 = var.get_lc_index_num();
+                    let idx2 = index.get_num();
                     if link_map.len() == 0{
                         let mut v = Vec::new();
-                        v.push(idx);
+                        v.push(idx2);
                         link_map.push(v);
                     }
                     else{
                         let mut raw_idx = 0;
                         for list in link_map.clone().iter(){
                             for n in list.iter(){
-                                if *n == idx{
-                                    link_map[raw_idx].push(idx);
+                                if *n == idx1{
+                                    link_map[raw_idx].push(idx2);
                                 }
                                 else{
                                     let mut v = Vec::new();
-                                    v.push(idx);
+                                    v.push(idx2);
                                     link_map.push(v);
                                 }
                             }
@@ -270,6 +270,7 @@ impl<F: Field> ConstraintSystem<F> {
                     }
                 }
             }
+            println!("map length:{}",link_map.len());
         }
         let final_map_len = link_map.len();
         println!("final length:{}",final_map_len);
