@@ -255,15 +255,19 @@ impl<F: Field> ConstraintSystem<F> {
                     else{
                         let mut raw_idx = 0;
                         for list in link_map.clone().iter(){
+                            let mut tag = 0;
                             for n in list.iter(){
                                 if *n == idx1{
-                                    link_map[raw_idx].push(idx2);
+                                    tag += 1;
                                 }
-                                else{
-                                    let mut v = Vec::new();
-                                    v.push(idx2);
-                                    link_map.push(v);
-                                }
+                            }
+                            if tag == 0{
+                                let mut v = Vec::new();
+                                v.push(idx2);
+                                link_map.push(v);
+                            }
+                            else{
+                                link_map[raw_idx].push(idx2);
                             }
                             raw_idx += 1;
                         } 
