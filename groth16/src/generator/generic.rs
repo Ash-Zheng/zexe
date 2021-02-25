@@ -67,7 +67,7 @@ where
     let end_check = Instant::now();
     println!("Zheng parallel check time {:?}", end_check.duration_since(begin_check));
 
-    // println!("Zheng cs before inline {:?}", cs);
+    println!("Zheng cs before inline {:?}", cs);
     cs.inline_all_lcs();
     // println!("Zheng cs after inline {:?}", cs);
     //
@@ -105,9 +105,9 @@ where
         R1CStoQAP::instance_map_with_evaluation::<E, D>(cs.clone(), &t)?;
     end_timer!(reduction_time);
     let end = Instant::now();
-    println!("\n a {:?}", a);
-    println!("\n b {:?}", b);
-    println!("\n c {:?}", c);
+    // println!("\n a {:?}", a);
+    // println!("\n b {:?}", b);
+    // println!("\n c {:?}", c);
     println!("Zheng Setup R1CStoQAP time {:?}", end.duration_since(begin));
 
     //println!("start Compute query densities");
