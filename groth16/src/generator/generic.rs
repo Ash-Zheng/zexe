@@ -63,7 +63,8 @@ where
     let lc_time = start_timer!(|| "Inlining LCs");
 
     // println!("Zheng cs before inline {:?}", cs);
-    cs.inline_all_lcs();
+    // cs.inline_all_lcs();
+    cs.parallel_inline();
     // println!("Zheng cs after inline {:?}", cs);
     //
     end_timer!(lc_time);
