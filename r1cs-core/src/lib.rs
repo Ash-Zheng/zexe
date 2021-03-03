@@ -14,7 +14,7 @@ pub extern crate alloc;
 
 #[cfg(not(feature = "std"))]
 pub use alloc::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     format,
     rc::Rc,
     string::{String, ToString},
@@ -24,7 +24,7 @@ pub use alloc::{
 
 #[cfg(feature = "std")]
 pub use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     format,
     rc::Rc,
     string::{String, ToString},

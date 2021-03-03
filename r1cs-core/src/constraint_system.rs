@@ -8,6 +8,11 @@ use algebra_core::Field;
 use core::cell::{Ref, RefCell, RefMut};
 use core::time::Duration;
 use std::time::Instant;
+use std::thread;
+use std::sync::mpsc;
+
+// use std::collections::HashMap;
+
 /// Computations are expressed in terms of rank-1 constraint systems (R1CS).
 /// The `generate_constraints` method is called to generate constraints for
 /// both CRS generation and for proving.
@@ -218,11 +223,12 @@ impl<F: Field> ConstraintSystem<F> {
         Ok(())
     }
 
+
     /// Count the number of times a given LC is used within another LC
     fn lc_num_times_used(&self, count_sinks: bool) -> Vec<usize> {
         // step 1: Identify all lcs that have been many times
         let mut num_times_used = vec![0; self.lc_map.len()];
-
+        
         for (index, lc) in self.lc_map.iter() {
             num_times_used[index.0] += count_sinks as usize;
 
@@ -235,6 +241,7 @@ impl<F: Field> ConstraintSystem<F> {
         }
         num_times_used
     }
+
 
     /// Get `SymbolicLc`s dependents with each other.
     pub fn parallel_inline_check(&mut self){
@@ -272,16 +279,164 @@ impl<F: Field> ConstraintSystem<F> {
                             raw_idx += 1;
                         } 
                     }
-                    println!("map length:{}",link_map.len());
-                    println!("final map:{:?}", link_map);
+                println!("map length:{}",link_map.len());
                 }
             }
         }
         let final_map_len = link_map.len();
         println!("final length:{}",final_map_len);
-        // println!("final map:{:?}", link_map);
+        println!("final map:{:?}", link_map);
     }
+
+    pub fn parallel_inline(&mut self)
+    {
+        let map_len = self.lc_map.len();
+        println!("lc_map len:{}", self.lc_map.len());
+        let mut num_times_used = self.lc_num_times_used(false);
+        let mut num_used_thread = vec![0usize; num_times_used.len()];
+        let mut group1:BTreeMap::<LcIndex,LinearCombination<F>> = BTreeMap::new();
+        let mut group2:BTreeMap::<LcIndex,LinearCombination<F>> = BTreeMap::new();
+        let mut new_group1:BTreeMap::<LcIndex,LinearCombination<F>> = BTreeMap::new();
+        let mut new_group2:BTreeMap::<LcIndex,LinearCombination<F>> = BTreeMap::new();
+
+        let begin1 = Instant::now();
+        for (&index, lc) in &self.lc_map  // first loop, divide group
+        {
+            for &(coeff, var) in lc.iter() 
+            {
+                if var.is_lc() 
+                {
+                    let lc_index = var.get_lc_index().expect("should be lc");
+                    if group1.contains_key(&lc_index){
+                        group1.insert(index, lc.clone());
+                    }
+                    else if group2.contains_key(&lc_index){
+                        group2.insert(index, lc.clone());
+                    }
+                    else{
+                        if group1.len()>group2.len(){
+                            let target_lc = self.lc_map.get(&lc_index).unwrap().clone();
+                            new_group2.insert(lc_index, target_lc);
+                            group2.insert(index, lc.clone());
+                        }
+                        else{
+                            let target_lc = self.lc_map.get(&lc_index).unwrap().clone();
+                            new_group1.insert(lc_index, target_lc);
+                            group1.insert(index, lc.clone());
+                        }
+                    }
+                }
+            }
+        }
+        let end1 = Instant::now();
+        let first_loop_time = end1.duration_since(begin1);
+        // println!("group1:{:?}\n", group1);
+        // println!("group2:{:?}\n", group2);
+        // println!("new_group1:{:?}\n", new_group1);
+        // println!("new_group2:{:?}\n", new_group2);
+
+        /////////////parallel compute////////////////
+        let begin2 = Instant::now();
+        let (tx, rx) = mpsc::channel();
+        let (tx1, rx1) = mpsc::channel();
+        let thread1 = thread::spawn(move || {
+            for (&index, lc) in &group2{
+                let mut inlined_lc = LinearCombination::new();
+                for &(coeff, var) in lc.iter() {
+                    if var.is_lc() {
+                        let lc_index = var.get_lc_index().expect("should be lc");
+                        let target_lc = new_group2.get(&lc_index).expect("should be inlined");
     
+                        let tmp = (target_lc * coeff).0.into_iter();
+                        num_used_thread[lc_index.0] += 1;
+                        inlined_lc.extend(tmp);
+                    }
+                    else{
+                        inlined_lc.push((coeff, var));
+                    }
+                }
+                inlined_lc.compactify();
+                new_group2.insert(index,inlined_lc);
+                // thread::sleep(Duration::from_nanos(100));
+            }
+            // println!("new_group2:{:?}\n", new_group2);
+            tx.send(new_group2).unwrap();
+            tx1.send(num_used_thread).unwrap();
+            println!("thread1 finished\n");
+        });
+        
+        // main thread
+        for (&index, lc) in &group1{
+            let mut inlined_lc = LinearCombination::new();
+            for &(coeff, var) in lc.iter() {
+                if var.is_lc() {
+                    let lc_index = var.get_lc_index().expect("should be lc");
+                    let target_lc = new_group1.get(&lc_index).expect("should be inlined");
+
+                    let tmp = (target_lc * coeff).0.into_iter();
+                    num_times_used[lc_index.0] -= 1;
+                    inlined_lc.extend(tmp);
+                }
+                else{
+                    inlined_lc.push((coeff, var));
+                }
+            }
+            inlined_lc.compactify();
+            new_group1.insert(index,inlined_lc);
+            // thread::sleep(Duration::from_millis(1));
+            // thread::sleep(Duration::from_nanos(100));
+        }
+        println!("main thread finished\n");
+        // println!("new_group1:{:?}\n", new_group1);
+
+        thread1.join().unwrap();
+        let end2 = Instant::now();
+        let parallel_compute_time = end2.duration_since(begin2);
+
+        /////////////////////////////////////////////
+        let begin3 = Instant::now();
+        println!("start receive things\n");
+        let new_new_group2 = rx.recv().unwrap();
+        // thread::sleep(Duration::from_millis(1));
+        // thread::sleep(Duration::from_nanos(10));
+        let new_num_used_thread= rx1.recv().unwrap();
+        let mut inlined_lcs = BTreeMap::new();
+
+        println!("start final loop\n");
+        // println!("{:?}",new_new_group2);
+
+        for (&index, lc) in &self.lc_map  // second loop, replace symbolic linear combinations
+        {
+            // if num_times_used[index.0]==new_num_used_thread[index.0] && num_times_used[index.0]>0
+            {
+                if new_group1.contains_key(&index){
+                    let inlined_lc = new_group1.get(&index).unwrap().clone();
+                    inlined_lcs.insert(index, inlined_lc);
+                }
+                else if new_new_group2.contains_key(&index){
+                    let inlined_lc = new_new_group2.get(&index).unwrap().clone();
+                    inlined_lcs.insert(index, inlined_lc);
+                }
+                else{
+                    let mut inlined_lc = lc.clone();
+                    inlined_lc.compactify();
+                    inlined_lcs.insert(index, inlined_lc);
+                }
+            }
+        }
+        let end3 = Instant::now();
+        let second_loop_time = end3.duration_since(begin3);
+
+        self.lc_map = inlined_lcs;
+
+        println!(
+            "fist loop {:?} parallel compute {:?}  second loop {:?}\n",
+            first_loop_time, parallel_compute_time, second_loop_time
+        );
+    }
+
+   
+
     /// Naively inlines symbolic linear combinations into the linear combinations
     /// that use them.
     ///
@@ -306,6 +461,7 @@ impl<F: Field> ConstraintSystem<F> {
         println!("lc_map len {}", self.lc_map.len());
         for (&index, lc) in &self.lc_map {
             let mut inlined_lc = LinearCombination::new();
+            // println!("\ninlined_lc:{:?}",inlined_lc);
             num_coeff += lc.clone().len();
 
             //println!("lc len {}", lc.clone().len());
@@ -319,12 +475,8 @@ impl<F: Field> ConstraintSystem<F> {
                     let lc = inlined_lcs.get(&lc_index).expect("should be inlined");
 
                     let begin = Instant::now();
-                    // println!("\n coeff:{:?}",coeff);
-                    // println!("\n lc:{:?}",lc);
-                    // lc * coeff;
-                    // println!("\n before iter:{:?}",ttmp);
                     let tmp = (lc * coeff).0.into_iter();
-                    // println!("\n lc * coeff:{:?}",tmp);
+                    // println!("lc * coeff:{:?}",tmp);
                     let end = Instant::now();
                     lc_mul_coeff_time += end.duration_since(begin);
 
@@ -767,6 +919,12 @@ impl<F: Field> ConstraintSystemRef<F> {
     pub fn parallel_inline_check(&self) {
         if let Some(cs) = self.inner() {
             cs.borrow_mut().parallel_inline_check()
+        }
+    }
+
+    pub fn parallel_inline(&self) {
+        if let Some(cs) = self.inner() {
+            cs.borrow_mut().parallel_inline()
         }
     }
 
